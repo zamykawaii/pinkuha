@@ -1,0 +1,41 @@
+[project]
+name = "pinkuha"
+version = "0.1.0"
+description = "Download, deduplicate, and organize Pinterest boards."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Zartkiel", email = "zadkiel.art1@gmail.com" }]
+keywords = ["pinterest", "downloader", "cli", "images", "clip", "image-classification"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet",
+    "Topic :: Multimedia :: Graphics",
+]
+dependencies = [
+    "gallery-dl>=1.32.9",
+    "open-clip-torch>=3.3.0",
+    "torch>=2.13.0",
+    "typer>=0.27.0",
+]
+
+[project.scripts]
+pinkuha = "pinkuha.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pinkuha"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
