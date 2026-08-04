@@ -228,7 +228,8 @@ def unique_destination(path: Path) -> Path:
 def reorder(
     directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory whose images will be sorted into category subfolders."),
 ):
-    """Classify images in a directory into PIXELART, DRAW, TUTORIAL, or CLOTHES subfolders."""
+    """[Experimental] Classify images in a directory into PIXELART, DRAW, TUTORIAL, or CLOTHES subfolders."""
+    typer.secho("This command is experimental: classification can be inaccurate.", fg=typer.colors.YELLOW)
     images = list_images(directory, recursive=False)
 
     if not images:

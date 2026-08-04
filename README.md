@@ -59,9 +59,9 @@ Delete byte-identical duplicate images from a folder (handy since the same pin o
 uv run pinkuha remove-duplicates output/board
 ```
 
-### `reorder`
+### `reorder` (experimental)
 
-Sort images into `PIXELART`, `DRAW`, `TUTORIAL`, or `CLOTHES` subfolders using a CLIP model — no training needed. The first run downloads the model (a few hundred MB).
+Sort images into `PIXELART`, `DRAW`, `TUTORIAL`, or `CLOTHES` subfolders using a CLIP model — no training needed. The first run downloads the model (a few hundred MB). Classification isn't perfect, so double-check the results.
 
 ```bash
 uv run pinkuha reorder output/board
