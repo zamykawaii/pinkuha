@@ -1,6 +1,6 @@
 # Pinkuha
 
-A little CLI to download Pinterest boards, clean up the duplicates, and sort the images into categories.
+A little CLI to download Pinterest boards and clean up the duplicates.
 
 ## Requirements
 
@@ -59,25 +59,9 @@ Delete byte-identical duplicate images from a folder (handy since the same pin o
 uv run pinkuha remove-duplicates output/board
 ```
 
-### `reorder` (experimental)
-
-Sort images into `PIXELART`, `DRAW`, `TUTORIAL`, or `CLOTHES` subfolders using a CLIP model — no training needed. The first run downloads the model (a few hundred MB). Classification isn't perfect, so double-check the results.
-
-```bash
-uv run pinkuha reorder output/board
-```
-
-### `flatten`
-
-Undo `reorder`, moving everything back out of the category subfolders.
-
-```bash
-uv run pinkuha flatten output/board
-```
-
 ### `stats`
 
-Show image count and total size for a folder, broken down by category.
+Show image count and total size for a folder.
 
 ```bash
 uv run pinkuha stats output/board

@@ -12,13 +12,6 @@ app = typer.Typer(add_completion=False, help="Download, deduplicate, and organiz
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
 
-CATEGORY_PROMPTS = {
-    "PIXELART": "a pixel art image",
-    "DRAW": "a hand-drawn illustration or sketch",
-    "TUTORIAL": "a tutorial image with step-by-step instructions or diagrams",
-    "CLOTHES": "a photo of a clothing item, like a shirt, dress, or pants",
-}
-
 
 def resolve_target(url: str) -> tuple[str, str]:
     path = urlparse(url).path.strip("/")
@@ -184,113 +177,15 @@ def remove_duplicates(
     typer.secho(f"Removed {len(duplicates)} duplicate image(s).", fg=typer.colors.GREEN)
 
 
-def classify_images(paths: list[Path]) -> dict[Path, str]:
-    import open_clip
-    import torch
-    from PIL import Image
-
-    categories = list(CATEGORY_PROMPTS)
-    try:
-        model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32-quickgelu", pretrained="openai")
-        tokenizer = open_clip.get_tokenizer("ViT-B-32-quickgelu")
-    except Exception as exc:
-        raise ConnectionError("No internet connection to download the classification model.") from exc
-    model.eval()
-
-    with torch.no_grad():
-        text_features = model.encode_text(tokenizer([CATEGORY_PROMPTS[c] for c in categories]))
-        text_features /= text_features.norm(dim=-1, keepdim=True)
-
-        results = {}
-        for path in paths:
-            image = preprocess(Image.open(path).convert("RGB")).unsqueeze(0)
-            image_features = model.encode_image(image)
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-            similarity = (image_features @ text_features.T).squeeze(0)
-            results[path] = categories[similarity.argmax().item()]
-
-    return results
-
-
-def unique_destination(path: Path) -> Path:
-    if not path.exists():
-        return path
-
-    counter = 1
-    while True:
-        candidate = path.with_name(f"{path.stem}_{counter}{path.suffix}")
-        if not candidate.exists():
-            return candidate
-        counter += 1
-
-
-@app.command()
-def reorder(
-    directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory whose images will be sorted into category subfolders."),
-):
-    """[Experimental] Classify images in a directory into PIXELART, DRAW, TUTORIAL, or CLOTHES subfolders."""
-    typer.secho("This command is experimental: classification can be inaccurate.", fg=typer.colors.YELLOW)
-    images = list_images(directory, recursive=False)
-
-    if not images:
-        typer.secho("No images found to classify.", fg=typer.colors.GREEN)
-        return
-
-    typer.secho(f"Classifying {len(images)} image(s)...", fg=typer.colors.CYAN)
-    try:
-        categories = classify_images(images)
-    except ConnectionError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1)
-
-    for path, category in categories.items():
-        destination = unique_destination(directory / category / path.name)
-        destination.parent.mkdir(exist_ok=True)
-        path.rename(destination)
-        typer.echo(f"{path.name} -> {category}")
-
-    typer.secho(f"Sorted {len(images)} image(s) into categories.", fg=typer.colors.GREEN)
-
-
-@app.command()
-def flatten(
-    directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory whose category subfolders will be flattened back."),
-):
-    """Move images out of category subfolders created by reorder, back into the directory itself."""
-    moved = 0
-    for category in CATEGORY_PROMPTS:
-        category_dir = directory / category
-        if not category_dir.is_dir():
-            continue
-
-        for path in list_images(category_dir, recursive=False):
-            path.rename(unique_destination(directory / path.name))
-            moved += 1
-
-        if not any(category_dir.iterdir()):
-            category_dir.rmdir()
-
-    if moved == 0:
-        typer.secho("No category subfolders found to flatten.", fg=typer.colors.GREEN)
-        return
-
-    typer.secho(f"Moved {moved} image(s) back to {directory}", fg=typer.colors.GREEN)
-
-
 @app.command()
 def stats(
     directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory to summarize."),
 ):
-    """Show how many images are in a directory, their total size, and the count per category."""
+    """Show how many images are in a directory and their total size."""
     images = list_images(directory, recursive=True)
     total_size = sum(path.stat().st_size for path in images)
 
     typer.secho(f"{len(images)} image(s), {total_size / (1024 * 1024):.1f} MB total", fg=typer.colors.CYAN)
-
-    for category in CATEGORY_PROMPTS:
-        category_dir = directory / category
-        if category_dir.is_dir():
-            typer.echo(f"  {category}: {len(list_images(category_dir, recursive=False))}")
 
 
 COMPRESSIBLE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "Zartkiel", email = "zadkiel.art1@gmail.com" }]
-keywords = ["pinterest", "downloader", "cli", "images", "clip", "image-classification"]
+keywords = ["pinterest", "downloader", "cli", "images"]
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
@@ -18,8 +18,7 @@ classifiers = [
 ]
 dependencies = [
     "gallery-dl>=1.32.9",
-    "open-clip-torch>=3.3.0",
-    "torch>=2.13.0",
+    "pillow>=11.0.0",
     "typer>=0.27.0",
 ]
 
@@ -30,12 +29,5 @@ pinkuha = "pinkuha.cli:app"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/pinkuha"]
-
-[tool.uv.sources]
-torch = { index = "pytorch-cpu" }
