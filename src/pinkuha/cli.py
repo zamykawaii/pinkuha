@@ -64,7 +64,7 @@ OUTPUT_OPTION = typer.Option(Path("output"), "--output", "-o", help="Root folder
 def download(
     board_url: str = typer.Argument(..., help="URL of the Pinterest board to download."),
     output: Path = OUTPUT_OPTION,
-):
+) -> None:
     """Download all pins from a Pinterest board into output/{board_name}."""
     target_url, board_name, dest = prepare_destination(board_url, output)
 
@@ -81,7 +81,7 @@ def download(
 def sync(
     board_url: str = typer.Argument(..., help="URL of the Pinterest board to sync."),
     output: Path = OUTPUT_OPTION,
-):
+) -> None:
     """Download only the pins added since the last download or sync of a board."""
     target_url, board_name, dest = prepare_destination(board_url, output)
     archive = dest / ".sync-archive.sqlite3"
@@ -98,7 +98,7 @@ def sync(
 @app.command()
 def info(
     board_url: str = typer.Argument(..., help="URL of the Pinterest board to inspect."),
-):
+) -> None:
     """Show how many files a Pinterest board would download, without downloading them."""
     require_pinterest_url(board_url)
 
@@ -117,7 +117,7 @@ def info(
 def metadata(
     board_url: str = typer.Argument(..., help="URL of the Pinterest board to export metadata for."),
     output: Path = OUTPUT_OPTION,
-):
+) -> None:
     """Export each pin's metadata (description, source, tags) as JSON, without downloading the images."""
     target_url, board_name, dest = prepare_destination(board_url, output)
     metadata_file = dest / "metadata.json"
@@ -149,11 +149,11 @@ def file_hash(path: Path) -> str:
 @app.command(name="remove-duplicates")
 def remove_duplicates(
     directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory to scan for duplicate images."),
-):
+) -> None:
     """Find byte-identical duplicate images under a directory and delete the extras."""
     images = list_images(directory, recursive=True)
 
-    groups = defaultdict(list)
+    groups: defaultdict[str, list[Path]] = defaultdict(list)
     for path in images:
         groups[file_hash(path)].append(path)
 
@@ -180,7 +180,7 @@ def remove_duplicates(
 @app.command()
 def stats(
     directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory to summarize."),
-):
+) -> None:
     """Show how many images are in a directory and their total size."""
     images = list_images(directory, recursive=True)
     total_size = sum(path.stat().st_size for path in images)
@@ -196,7 +196,7 @@ def compress_image(path: Path, quality: int, max_dimension: int) -> None:
 
     image = Image.open(path)
     if max(image.size) > max_dimension:
-        image.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
+        image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
     if path.suffix.lower() in {".jpg", ".jpeg"}:
         image = image.convert("RGB")
     image.save(path, quality=quality, optimize=True)
@@ -207,7 +207,7 @@ def compress(
     directory: Path = typer.Argument(..., exists=True, file_okay=False, help="Directory whose images will be compressed in place."),
     quality: int = typer.Option(85, help="JPEG/WEBP quality to re-encode with, from 1 to 95."),
     max_dimension: int = typer.Option(2048, help="Downscale images wider or taller than this, in pixels."),
-):
+) -> None:
     """Shrink image file sizes in place by re-encoding and downscaling oversized images."""
     paths = list_images(directory, recursive=True, extensions=COMPRESSIBLE_EXTENSIONS)
 
