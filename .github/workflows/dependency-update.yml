@@ -1,0 +1,24 @@
+name: Weekly Dependency Update
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv lock --upgrade
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: weekly dependency update"
+          title: "chore: weekly dependency update"
+          branch: deps/weekly-update
+          delete-branch: true
