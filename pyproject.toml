@@ -35,9 +35,14 @@ packages = ["src/pinkuha"]
 [dependency-groups]
 dev = [
     "pyright>=1.1.411",
+    "pytest>=9.1.1",
 ]
 
 [tool.pyright]
 include = ["src"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
